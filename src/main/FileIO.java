@@ -8,7 +8,7 @@ import gui.GUI;
 public class FileIO {
 	private static final String FILE_DIRECTORY = "recipe_files/";
 	private static GUI gui;
-
+	//creates directory if necessary, and then creates the file to add recipes to, as necessary
 	public static void saveRecipeToFile(Recipe recipe) {
 		createDirectoryIfNotExists();
 
@@ -22,7 +22,7 @@ public class FileIO {
 			e.printStackTrace();
 		}
 	}
-
+	//searches for file based on the String for the Recipe name given
 	public static String searchRecipeFile(String recipeName) {
 		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
 		File file = new File(fileName);
@@ -42,11 +42,11 @@ public class FileIO {
 			return null;
 		}
 	}
-
+	//setter method sets the GUI reference
 	public static void setGUIReference(GUI guiInstance) {
 		gui = guiInstance;
 	}
-
+	//deletes the file if it exists
 	public static boolean deleteRecipeFile(String recipeName) {
 		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
 		File file = new File(fileName);
@@ -58,7 +58,7 @@ public class FileIO {
 		}
 		return false;
 	}
-
+	//if no file directory currently exists, creates on
 	private static void createDirectoryIfNotExists() {
 		File directory = new File(FILE_DIRECTORY);
 		if (!directory.exists()) {

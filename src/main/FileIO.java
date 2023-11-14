@@ -1,46 +1,68 @@
 package main;
 
 import java.io.*;
+import java.util.ArrayList;
+
+import gui.GUI;
 
 public class FileIO {
-    private static final String DIRECTORY = "recipes";
+	private static final String FILE_DIRECTORY = "recipe_files/";
+	private static GUI gui;
 
-    public FileIO() {
-        // Check if the directory exists, if not, create it
-        File dir = new File(DIRECTORY);
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-    }
+	public static void saveRecipeToFile(Recipe recipe) {
+		createDirectoryIfNotExists();
 
-    public void writeFile(Recipe recipe) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DIRECTORY + "/" + recipe.getRecipeName() + ".ser"))) {
-            oos.writeObject(recipe);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		String fileName = FILE_DIRECTORY + recipe.getRecipeName().replaceAll("\\s+", "_") + ".txt";
 
-    public Recipe readFile(String recipeName) {
-        Recipe recipe = null;
-        File file = new File(DIRECTORY + "/" + recipeName + ".ser");
-        if (file.exists()) {
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-                recipe = (Recipe) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        return recipe;
-    }
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+			writer.write("Recipe Name: " + recipe.getRecipeName() + "\n");
+			writer.write("Ingredients: " + String.join(", ", recipe.getIngredients()) + "\n");
+			writer.write("Instructions: " + recipe.getInstructions());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-    public void deleteFile(String recipeName) {
-        File file = new File(DIRECTORY + "/" + recipeName + ".ser");
-        if (file.exists()) {
-            if (!file.delete()) {
-                System.out.println("Failed to delete the recipe: " + recipeName);
-            }
-        }
-    }
+	public static String searchRecipeFile(String recipeName) {
+		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+		File file = new File(fileName);
+
+		if (file.exists()) {
+			StringBuilder result = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					result.append(line).append("\n");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return result.toString();
+		} else {
+			return null;
+		}
+	}
+
+	public static void setGUIReference(GUI guiInstance) {
+		gui = guiInstance;
+	}
+
+	public static boolean deleteRecipeFile(String recipeName) {
+		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+		File file = new File(fileName);
+
+		if (file.exists()) {
+			if (file.delete()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void createDirectoryIfNotExists() {
+		File directory = new File(FILE_DIRECTORY);
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
+	}
 }
-

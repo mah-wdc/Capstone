@@ -1,130 +1,367 @@
 package gui;
 
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Scanner;
-import main.*;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import main.FileIO;
+import main.Recipe;
 
 public class GUI {
-    private RecipeLibrary library;
-    private Scanner scanner;
+	private JFrame frame;
+	private JTextField pinField;
+	private final String PIN = "1234";
 
-    public GUI() {
-        library = new RecipeLibrary();
-        scanner = new Scanner(System.in);
-    }
+	public GUI() {
+		frame = new JFrame("PIN Verification");
+		frame.setSize(300, 150);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(null);
 
-    public void displayLogin() {
-        System.out.print("Enter PIN to access the library: ");
-        String inputPin = scanner.nextLine();
-        if (library.validatePin(inputPin)) {
-            displayMainMenu();
-        } else {
-            System.out.println("Invalid PIN. Access denied.");
-        }
-    }
+		JLabel pinLabel = new JLabel("Enter PIN:");
+		pinLabel.setBounds(20, 20, 80, 25);
+		frame.add(pinLabel);
 
-    public void displayMainMenu() {
-        while (true) {
-            System.out.println("\nWelcome to the Recipe Library");
-            System.out.println("1. Add Recipe");
-            System.out.println("2. Search Recipe");
-            System.out.println("3. Edit Recipe");
-            System.out.println("4. Delete Recipe");
-            System.out.println("5. Exit");
+		pinField = new JPasswordField();
+		pinField.setBounds(100, 20, 150, 25);
+		frame.add(pinField);
 
-            System.out.print("Enter choice: ");
-            int choice = Integer.parseInt(scanner.nextLine());
+		JButton submitButton = new JButton("Submit");
+		submitButton.setBounds(100, 60, 80, 25);
+		submitButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String enteredPIN = pinField.getText();
+				if (enteredPIN.equals(PIN)) {
+					showSuccessMessage("PIN entered successfully.", false);
+					viewRecipeMenu();
+				} else {
+					showErrorMessage("Error: Incorrect PIN. Please try again.");
+					pinField.setText(""); // Clear the PIN field for another attempt
+				}
+			}
+		});
+		frame.add(submitButton);
+		FileIO.setGUIReference(this);
 
-            switch (choice) {
-                case 1:
-                    displayAddRecipeForm();
-                    break;
-                case 2:
-                    displaySearchRecipeForm();
-                    break;
-                case 3:
-                    displayEditRecipeForm();
-                    break;
-                case 4:
-                    displayDeleteRecipeForm();
-                    break;
-                case 5:
-                    System.out.println("Exiting...");
-                    System.exit(0);
-                default:
-                    System.out.println("Invalid choice.");
-                    break;
-            }
-        }
-    }
+		frame.setVisible(true);
+	}
 
-    public void displayAddRecipeForm() {
-        System.out.print("Enter Recipe Name: ");
-        String name = scanner.nextLine();
+	private void viewRecipeMenu() {
+		frame.dispose(); // Close the PIN verification window
 
-        ArrayList<String> ingredients = new ArrayList<>();
-        System.out.println("Enter ingredients (type 'end' to finish):");
-        String ingredient;
-        while (!(ingredient = scanner.nextLine()).equalsIgnoreCase("end")) {
-            ingredients.add(ingredient);
-        }
+		JFrame recipeFrame = new JFrame("Recipe Library Options");
+		recipeFrame.setSize(400, 200);
+		recipeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		recipeFrame.setLayout(null);
 
-        System.out.println("Enter Instructions:");
-        String instructions = scanner.nextLine();
+		JLabel label = new JLabel("Please select an option for the Recipe Library:");
+		label.setBounds(20, 20, 300, 25);
+		label.setHorizontalAlignment(SwingConstants.CENTER);
+		recipeFrame.add(label);
 
-        Recipe recipe = new Recipe(name, ingredients, instructions);
-        library.addRecipe(recipe);
-        System.out.println("Recipe added successfully!");
-    }
+		JButton addRecipeButton = new JButton("Add a Recipe");
+		addRecipeButton.setBounds(20, 60, 150, 25);
+		addRecipeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showAddRecipeDialog(false, null);
+			}
+		});
+		recipeFrame.add(addRecipeButton);
 
-    public void displaySearchRecipeForm() {
-        System.out.print("Enter Recipe Name to search: ");
-        String name = scanner.nextLine();
-        Recipe recipe = library.searchForRecipe(name);
-        if (recipe != null) {
-            displayRecipe(recipe);
-        } else {
-            System.out.println("Recipe not found.");
-        }
-    }
+		JButton searchRecipeButton = new JButton("Search for a Recipe");
+		searchRecipeButton.setBounds(20, 90, 150, 25);
+		searchRecipeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSearchRecipeDialog();
+			}
+		});
+		recipeFrame.add(searchRecipeButton);
 
-    public void displayEditRecipeForm() {
-        System.out.print("Enter Recipe Name to edit: ");
-        String name = scanner.nextLine();
+		JButton editRecipeButton = new JButton("Edit a Recipe");
+		editRecipeButton.setBounds(200, 60, 150, 25);
+		editRecipeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showEditRecipeDialog();
+			}
+		});
+		recipeFrame.add(editRecipeButton);
 
-        // Assuming that to edit a recipe, we first need to remove it and then add a new one
-        Recipe existingRecipe = library.searchForRecipe(name);
-        if (existingRecipe != null) {
-            System.out.println("Editing Recipe: " + name);
-            displayAddRecipeForm(); // Reuse the add recipe form for editing purposes
-            library.deleteRecipe(name); // Delete after adding the new one to avoid overwriting before confirming
-        } else {
-            System.out.println("Recipe not found.");
-        }
-    }
+		JButton deleteRecipeButton = new JButton("Delete a Recipe");
+		deleteRecipeButton.setBounds(200, 90, 150, 25);
+		deleteRecipeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showDeleteRecipeDialog();
+			}
+		});
+		recipeFrame.add(deleteRecipeButton);
 
-    public void displayDeleteRecipeForm() {
-        System.out.print("Enter Recipe Name to delete: ");
-        String name = scanner.nextLine();
-        library.deleteRecipe(name);
-        System.out.println("Recipe deleted successfully.");
-    }
+		recipeFrame.setVisible(true);
+	}
 
-    public void displayRecipe(Recipe recipe) {
-        System.out.println("\nRecipe Name: " + recipe.getRecipeName());
-        System.out.println("Ingredients:");
-        for (String ingredient : recipe.getIngredients()) {
-            System.out.println("- " + ingredient);
-        }
-        System.out.println("Instructions: " + recipe.getInstructions());
-    }
+	private void showAddRecipeDialog(boolean isEditing, String recipeNameToEdit) {
+		JFrame addRecipeFrame = new JFrame(isEditing ? "Edit Recipe" : "Add a Recipe");
+		addRecipeFrame.setSize(500, 400);
+		addRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		addRecipeFrame.setLayout(null);
 
-    public void displayError(String message) {
-        System.out.println("Error: " + message);
-    }
+		JLabel nameLabel = new JLabel("Recipe Name:");
+		nameLabel.setBounds(20, 20, 100, 25);
+		addRecipeFrame.add(nameLabel);
 
-    // Main method to run the GUI
-    public static void main(String[] args) {
-        new GUI().displayLogin();
-    }
+		JTextField nameField = new JTextField();
+		nameField.setBounds(120, 20, 350, 25);
+		addRecipeFrame.add(nameField);
+
+		JLabel ingredientsLabel = new JLabel("Ingredients separated by a comma:");
+		ingredientsLabel.setBounds(20, 60, 300, 25);
+		addRecipeFrame.add(ingredientsLabel);
+
+		JTextArea ingredientsArea = new JTextArea();
+		ingredientsArea.setBounds(20, 90, 450, 80);
+		addRecipeFrame.add(ingredientsArea);
+
+		JLabel instructionsLabel = new JLabel("Instructions:");
+		instructionsLabel.setBounds(20, 190, 100, 25);
+		addRecipeFrame.add(instructionsLabel);
+
+		JTextArea instructionsArea = new JTextArea();
+		instructionsArea.setBounds(20, 220, 450, 80);
+		addRecipeFrame.add(instructionsArea);
+
+		JButton saveButton = new JButton(isEditing ? "Save Changes" : "Save Recipe");
+		saveButton.setBounds(200, 320, 120, 25);
+		saveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String recipeName = nameField.getText();
+				String ingredientsText = ingredientsArea.getText();
+				String instructions = instructionsArea.getText();
+
+				// Split ingredients by comma and create an ArrayList
+				String[] ingredientsArray = ingredientsText.split(",");
+				ArrayList<String> ingredientsList = new ArrayList<>();
+				for (String ingredient : ingredientsArray) {
+					ingredientsList.add(ingredient.trim());
+				}
+
+				// Create a Recipe object
+				Recipe newRecipe = new Recipe(recipeName, ingredientsList, instructions);
+
+				// Save the recipe to a .txt file using FileIO class
+				FileIO.saveRecipeToFile(newRecipe);
+
+				addRecipeFrame.dispose(); // Close the add/edit recipe window
+				showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false);
+			}
+		});
+		addRecipeFrame.add(saveButton);
+
+		// If editing, load data from the existing recipe file
+		if (isEditing) {
+			showEditRecipeFromFile(nameField, ingredientsArea, instructionsArea, recipeNameToEdit);
+		}
+
+		addRecipeFrame.setVisible(true);
+	}
+
+	private void showSearchRecipeDialog() {
+		JFrame searchRecipeFrame = new JFrame("Search for a Recipe");
+		searchRecipeFrame.setSize(400, 150);
+		searchRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		searchRecipeFrame.setLayout(null);
+
+		JLabel nameLabel = new JLabel("Enter Recipe Name:");
+		nameLabel.setBounds(20, 20, 150, 25);
+		searchRecipeFrame.add(nameLabel);
+
+		JTextField nameField = new JTextField();
+		nameField.setBounds(180, 20, 150, 25);
+		searchRecipeFrame.add(nameField);
+
+		JButton searchButton = new JButton("Search");
+		searchButton.setBounds(150, 60, 100, 25);
+		searchButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String recipeName = nameField.getText();
+				String recipeContent = FileIO.searchRecipeFile(recipeName);
+
+				if (recipeContent != null) {
+					showSuccessMessage("Recipe Found:\n" + recipeContent, true);
+				} else {
+					showErrorMessage("No File Found for Recipe: " + recipeName);
+				}
+
+				searchRecipeFrame.dispose();
+			}
+		});
+		searchRecipeFrame.add(searchButton);
+
+		searchRecipeFrame.setVisible(true);
+	}
+
+	private void showEditRecipeDialog() {
+		JFrame editRecipeFrame = new JFrame("Edit a Recipe");
+		editRecipeFrame.setSize(500, 400);
+		editRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		editRecipeFrame.setLayout(null);
+
+		JLabel nameLabel = new JLabel("Enter Recipe Name:");
+		nameLabel.setBounds(20, 20, 150, 25);
+		editRecipeFrame.add(nameLabel);
+
+		JTextField nameField = new JTextField();
+		nameField.setBounds(180, 20, 150, 25);
+		editRecipeFrame.add(nameField);
+
+		JButton searchButton = new JButton("Search");
+		searchButton.setBounds(150, 60, 100, 25);
+		searchButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String recipeName = nameField.getText();
+				String recipeContent = FileIO.searchRecipeFile(recipeName);
+
+				if (recipeContent != null) {
+					// Show the add recipe dialog with editing enabled
+					showAddRecipeDialog(true, recipeName);
+				} else {
+					showErrorMessage("No File Found for Recipe: " + recipeName);
+				}
+
+				editRecipeFrame.dispose();
+			}
+		});
+		editRecipeFrame.add(searchButton);
+
+		editRecipeFrame.setVisible(true);
+	}
+
+	@SuppressWarnings("unused")
+	private void showEditRecipeContentDialog(String content, String recipeName) {
+		JFrame editRecipeContentFrame = new JFrame("Edit Recipe");
+		editRecipeContentFrame.setSize(500, 400);
+		editRecipeContentFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		editRecipeContentFrame.setLayout(null);
+
+		JTextArea contentArea = new JTextArea();
+		contentArea.setBounds(20, 20, 450, 250);
+		contentArea.setText(content);
+		editRecipeContentFrame.add(contentArea);
+
+		JButton saveButton = new JButton("Save Changes");
+		saveButton.setBounds(200, 300, 150, 25);
+		saveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String updatedContent = contentArea.getText();
+
+				// Delete the original file
+				FileIO.deleteRecipeFile(recipeName);
+
+				// Save the updated content as a new file
+				Recipe updatedRecipe = Recipe.parseRecipeFromString(updatedContent);
+				FileIO.saveRecipeToFile(updatedRecipe);
+
+				editRecipeContentFrame.dispose(); // Close the edit recipe content window
+				showSuccessMessage("Recipe Edited Successfully", false);
+			}
+		});
+		editRecipeContentFrame.add(saveButton);
+
+		editRecipeContentFrame.setVisible(true);
+	}
+
+	public void showSuccessMessage(String message, boolean isRecipeFound) {
+		if (isRecipeFound) {
+			JTextArea textArea = new JTextArea(message);
+			textArea.setEditable(false);
+			textArea.setLineWrap(true);
+			textArea.setWrapStyleWord(true);
+
+			JScrollPane scrollPane = new JScrollPane(textArea);
+			scrollPane.setPreferredSize(new Dimension(500, 300)); // Set the preferred size
+
+			JOptionPane.showMessageDialog(frame, scrollPane, "Recipe Found", JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(frame, message);
+		}
+	}
+
+	public void showErrorMessage(String message) {
+		JOptionPane.showMessageDialog(frame, message);
+	}
+
+	private void showEditRecipeFromFile(JTextField nameField, JTextArea ingredientsArea, JTextArea instructionsArea,
+			String recipeName) {
+		String recipeContent = FileIO.searchRecipeFile(recipeName);
+		if (recipeContent != null) {
+			// Parse the existing content and pre-fill the fields
+			Recipe existingRecipe = Recipe.parseRecipeFromString(recipeContent);
+			nameField.setText(existingRecipe.getRecipeName());
+			ingredientsArea.setText(String.join(", ", existingRecipe.getIngredients()));
+			instructionsArea.setText(existingRecipe.getInstructions());
+		}
+	}
+
+	private void showDeleteRecipeDialog() {
+		JFrame deleteRecipeFrame = new JFrame("Delete a Recipe");
+		deleteRecipeFrame.setSize(400, 150);
+		deleteRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		deleteRecipeFrame.setLayout(null);
+
+		JLabel nameLabel = new JLabel("Enter Recipe Name:");
+		nameLabel.setBounds(20, 20, 150, 25);
+		deleteRecipeFrame.add(nameLabel);
+
+		JTextField nameField = new JTextField();
+		nameField.setBounds(180, 20, 150, 25);
+		deleteRecipeFrame.add(nameField);
+
+		JButton deleteButton = new JButton("Delete");
+		deleteButton.setBounds(150, 60, 100, 25);
+		deleteButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String recipeName = nameField.getText();
+				String recipeContent = FileIO.searchRecipeFile(recipeName);
+
+				if (recipeContent != null) {
+					int choice = JOptionPane.showConfirmDialog(deleteRecipeFrame,
+							"Are you sure you want to delete the recipe?", "Confirm Deletion",
+							JOptionPane.YES_NO_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						if (FileIO.deleteRecipeFile(recipeName)) {
+							showSuccessMessage("Recipe Successfully Deleted", false);
+						} else {
+							showErrorMessage("Error: Recipe not deleted.");
+						}
+					}
+				} else {
+					showErrorMessage("No File Found for Recipe: " + recipeName);
+				}
+
+				deleteRecipeFrame.dispose();
+			}
+		});
+		deleteRecipeFrame.add(deleteButton);
+
+		deleteRecipeFrame.setVisible(true);
+	}
 }

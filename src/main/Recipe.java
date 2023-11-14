@@ -1,72 +1,68 @@
 package main;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Objects;
 
-public class Recipe implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private String recipeName;
-    private ArrayList<String> ingredients;
-    private String instructions;
+public class Recipe {
+	private String recipeName;
+	private ArrayList<String> ingredients;
+	private String instructions;
 
-    // Constructor
-    public Recipe(String recipeName, ArrayList<String> ingredients, String instructions) {
-        this.recipeName = recipeName;
-        this.ingredients = ingredients;
-        this.instructions = instructions;
-    }
+	public Recipe(String recipeName, ArrayList<String> ingredients, String instructions) {
+		this.recipeName = recipeName;
+		this.ingredients = new ArrayList<>(ingredients);
+		this.instructions = instructions;
+	}
 
-    // Getters
-    public String getRecipeName() {
-        return recipeName;
-    }
+	public String getRecipeName() {
+		return recipeName;
+	}
 
-    public ArrayList<String> getIngredients() {
-        return new ArrayList<>(ingredients); // Defensive copy for mutable list
-    }
+	public void setRecipeName(String recipeName) {
+		this.recipeName = recipeName;
+	}
 
-    public String getInstructions() {
-        return instructions;
-    }
+	public ArrayList<String> getIngredients() {
+		return new ArrayList<>(ingredients);
+	}
 
-    // Setters
-    public void setRecipeName(String recipeName) {
-        this.recipeName = recipeName;
-    }
+	public void setIngredients(ArrayList<String> ingredients) {
+		this.ingredients = new ArrayList<>(ingredients);
+	}
 
-    public void setIngredients(ArrayList<String> ingredients) {
-        this.ingredients = new ArrayList<>(ingredients); // Defensive copy for mutable list
-    }
+	public String getInstructions() {
+		return instructions;
+	}
 
-    public void setInstructions(String instructions) {
-        this.instructions = instructions;
-    }
+	public void setInstructions(String instructions) {
+		this.instructions = instructions;
+	}
 
-    // toString method
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Recipe Name: ").append(recipeName).append("\n");
-        sb.append("Ingredients:\n");
-        for (String ingredient : ingredients) {
-            sb.append("- ").append(ingredient).append("\n");
-        }
-        sb.append("Instructions: ").append(instructions).append("\n");
-        return sb.toString();
-    }
+	@Override
+	public String toString() {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("Recipe Name: ").append(recipeName).append("\n");
+		stringBuilder.append("Ingredients: ").append(String.join(", ", ingredients)).append("\n");
+		stringBuilder.append("Instructions: ").append(instructions);
+		return stringBuilder.toString();
+	}
 
-    // equals and hashCode methods
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Recipe)) return false;
-        Recipe recipe = (Recipe) o;
-        return Objects.equals(getRecipeName(), recipe.getRecipeName());
-    }
+	public static Recipe parseRecipeFromString(String recipeString) {
+		// Split the input string by newline character to get different fields
+		String[] fields = recipeString.split("\n");
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getRecipeName());
-    }
+		// Extract values from fields
+		String recipeName = fields[0].substring(fields[0].indexOf(":") + 1).trim();
+		String ingredientsString = fields[1].substring(fields[1].indexOf(":") + 1).trim();
+		String instructions = fields[2].substring(fields[2].indexOf(":") + 1).trim();
+
+		// Split ingredients string into a list
+		String[] ingredientsArray = ingredientsString.split(",");
+		ArrayList<String> ingredientsList = new ArrayList<>();
+		for (String ingredient : ingredientsArray) {
+			ingredientsList.add(ingredient.trim());
+		}
+
+		// Create and return a new Recipe object
+		return new Recipe(recipeName, ingredientsList, instructions);
+	}
 }

@@ -23,6 +23,7 @@ public class GUI {
 	private JTextField pinField;
 	private final String PIN = "1234";
 
+	//constructor for the main GUI, creates frames for the PIN Verification 
 	public GUI() {
 		frame = new JFrame("PIN Verification");
 		frame.setSize(300, 150);
@@ -58,6 +59,8 @@ public class GUI {
 		frame.setVisible(true);
 	}
 
+	//method for creating the recipe menu for viewing
+	//each button is created separately and added with a listener 
 	private void viewRecipeMenu() {
 		frame.dispose(); // Close the PIN verification window
 
@@ -114,6 +117,7 @@ public class GUI {
 		recipeFrame.setVisible(true);
 	}
 
+	//dialog box for creating or updating a recipe
 	private void showAddRecipeDialog(boolean isEditing, String recipeNameToEdit) {
 		JFrame addRecipeFrame = new JFrame(isEditing ? "Edit Recipe" : "Add a Recipe");
 		addRecipeFrame.setSize(500, 400);
@@ -180,6 +184,7 @@ public class GUI {
 		addRecipeFrame.setVisible(true);
 	}
 
+	//new GUI created for Searching for recipe
 	private void showSearchRecipeDialog() {
 		JFrame searchRecipeFrame = new JFrame("Search for a Recipe");
 		searchRecipeFrame.setSize(400, 150);
@@ -215,7 +220,7 @@ public class GUI {
 
 		searchRecipeFrame.setVisible(true);
 	}
-
+	//new GUI window for editing a recipe
 	private void showEditRecipeDialog() {
 		JFrame editRecipeFrame = new JFrame("Edit a Recipe");
 		editRecipeFrame.setSize(500, 400);
@@ -253,6 +258,7 @@ public class GUI {
 		editRecipeFrame.setVisible(true);
 	}
 
+	//GUI cretaed for edit recipe content
 	@SuppressWarnings("unused")
 	private void showEditRecipeContentDialog(String content, String recipeName) {
 		JFrame editRecipeContentFrame = new JFrame("Edit Recipe");
@@ -288,6 +294,7 @@ public class GUI {
 		editRecipeContentFrame.setVisible(true);
 	}
 
+	//new GUI window for when a recipe is found during a search function
 	public void showSuccessMessage(String message, boolean isRecipeFound) {
 		if (isRecipeFound) {
 			JTextArea textArea = new JTextArea(message);
@@ -304,10 +311,12 @@ public class GUI {
 		}
 	}
 
+	//creates new window for when you're showing an error message
 	public void showErrorMessage(String message) {
 		JOptionPane.showMessageDialog(frame, message);
 	}
 
+	//pulls data from file that exists to make sure the file populates the name, ingredients, and instructions fields
 	private void showEditRecipeFromFile(JTextField nameField, JTextArea ingredientsArea, JTextArea instructionsArea,
 			String recipeName) {
 		String recipeContent = FileIO.searchRecipeFile(recipeName);
@@ -320,6 +329,7 @@ public class GUI {
 		}
 	}
 
+	//dialog box for deleting recipes includes information for finding recipe and deleting it
 	private void showDeleteRecipeDialog() {
 		JFrame deleteRecipeFrame = new JFrame("Delete a Recipe");
 		deleteRecipeFrame.setSize(400, 150);

@@ -1,9 +1,15 @@
 package gui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -14,16 +20,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
 import main.FileIO;
 import main.Recipe;
 
 public class GUI {
 	private JFrame frame;
+	private JFrame recipeFrame;
 	private JTextField pinField;
 	private final String PIN = "1234";
+	private JLabel dateLabel;
+	private JLabel timeLabel;
 
-	//constructor for the main GUI, creates frames for the PIN Verification 
+	// constructor for the main GUI, creates frames for the PIN Verification
 	public GUI() {
 		frame = new JFrame("PIN Verification");
 		frame.setSize(300, 150);
@@ -45,7 +55,7 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 				String enteredPIN = pinField.getText();
 				if (enteredPIN.equals(PIN)) {
-					showSuccessMessage("PIN entered successfully.", false);
+					showSuccessMessage("PIN entered successfully.", false, SuccessMessageType.GENERIC);
 					viewRecipeMenu();
 				} else {
 					showErrorMessage("Error: Incorrect PIN. Please try again.");
@@ -54,28 +64,58 @@ public class GUI {
 			}
 		});
 		frame.add(submitButton);
+
 		FileIO.setGUIReference(this);
+		// Center the JFrame on the screen
+		frame.setLocationRelativeTo(null);
 
 		frame.setVisible(true);
 	}
 
-	//method for creating the recipe menu for viewing
-	//each button is created separately and added with a listener 
+	// Enum to represent the type of success message
+	public enum SuccessMessageType {
+		GENERIC, // For general success messages
+		RECIPE_ADDED, // For success messages related to adding recipes
+		RECIPE_DELETED // For success messages related to deleting recipes
+	}
+
+	// method for creating the recipe menu for viewing
+	// each button is created separately and added with a listener
 	private void viewRecipeMenu() {
 		frame.dispose(); // Close the PIN verification window
 
-		JFrame recipeFrame = new JFrame("Recipe Library Options");
-		recipeFrame.setSize(400, 200);
+		recipeFrame = new JFrame("Recipe Library Options");
+		recipeFrame.setSize(400, 250);
 		recipeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		recipeFrame.setLayout(null);
 
-		JLabel label = new JLabel("Please select an option for the Recipe Library:");
-		label.setBounds(20, 20, 300, 25);
+		JLabel welcomeLabel = new JLabel("Welcome to the Recipe Library.");
+		welcomeLabel.setBounds(20, 10, 330, 25);
+		welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		recipeFrame.add(welcomeLabel);
+
+		int count = FileIO.getNumberOfRecipes();
+		JLabel recipeCountLabel;
+
+		if (count == 0) {
+			recipeCountLabel = new JLabel("The library is empty.");
+		} else if (count == 1) {
+			recipeCountLabel = new JLabel("There is 1 recipe in the library.");
+		} else {
+			recipeCountLabel = new JLabel("There are " + count + " recipes in the library.");
+		}
+
+		recipeCountLabel.setBounds(20, 25, 330, 25);
+		recipeCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		recipeFrame.add(recipeCountLabel);
+
+		JLabel label = new JLabel("Please select an option:");
+		label.setBounds(20, 40, 330, 25);
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		recipeFrame.add(label);
 
 		JButton addRecipeButton = new JButton("Add a Recipe");
-		addRecipeButton.setBounds(20, 60, 150, 25);
+		addRecipeButton.setBounds(20, 70, 150, 25);
 		addRecipeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -85,7 +125,7 @@ public class GUI {
 		recipeFrame.add(addRecipeButton);
 
 		JButton searchRecipeButton = new JButton("Search for a Recipe");
-		searchRecipeButton.setBounds(20, 90, 150, 25);
+		searchRecipeButton.setBounds(20, 100, 150, 25);
 		searchRecipeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -95,7 +135,7 @@ public class GUI {
 		recipeFrame.add(searchRecipeButton);
 
 		JButton editRecipeButton = new JButton("Edit a Recipe");
-		editRecipeButton.setBounds(200, 60, 150, 25);
+		editRecipeButton.setBounds(200, 70, 150, 25);
 		editRecipeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -105,7 +145,7 @@ public class GUI {
 		recipeFrame.add(editRecipeButton);
 
 		JButton deleteRecipeButton = new JButton("Delete a Recipe");
-		deleteRecipeButton.setBounds(200, 90, 150, 25);
+		deleteRecipeButton.setBounds(200, 100, 150, 25);
 		deleteRecipeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -114,10 +154,45 @@ public class GUI {
 		});
 		recipeFrame.add(deleteRecipeButton);
 
+		// Create and add the date label
+		dateLabel = new JLabel();
+		dateLabel.setBounds(20, 130, 330, 25);
+		dateLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		recipeFrame.add(dateLabel);
+
+		// Create and add the time label
+		timeLabel = new JLabel();
+		timeLabel.setBounds(20, 160, 330, 25);
+		timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		recipeFrame.add(timeLabel);
+
+		// Update time label using Timer
+		Timer timer = new Timer(1000, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				updateTimeLabel();
+			}
+		});
+		timer.start();
+
+		// Center the JFrame on the screen
+		recipeFrame.setLocationRelativeTo(null);
 		recipeFrame.setVisible(true);
 	}
 
-	//dialog box for creating or updating a recipe
+	// Update time label with the current time
+	private void updateTimeLabel() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+
+		String currentDate = dateFormat.format(new Date());
+		String currentTime = timeFormat.format(new Date());
+
+		dateLabel.setText("Current Date: " + currentDate);
+		timeLabel.setText("Current Time: " + currentTime);
+	}
+
+	// dialog box for creating or updating a recipe
 	private void showAddRecipeDialog(boolean isEditing, String recipeNameToEdit) {
 		JFrame addRecipeFrame = new JFrame(isEditing ? "Edit Recipe" : "Add a Recipe");
 		addRecipeFrame.setSize(500, 400);
@@ -138,6 +213,8 @@ public class GUI {
 
 		JTextArea ingredientsArea = new JTextArea();
 		ingredientsArea.setBounds(20, 90, 450, 80);
+		ingredientsArea.setLineWrap(true);
+		ingredientsArea.setWrapStyleWord(true);
 		addRecipeFrame.add(ingredientsArea);
 
 		JLabel instructionsLabel = new JLabel("Instructions:");
@@ -146,6 +223,8 @@ public class GUI {
 
 		JTextArea instructionsArea = new JTextArea();
 		instructionsArea.setBounds(20, 220, 450, 80);
+		instructionsArea.setLineWrap(true);
+		instructionsArea.setWrapStyleWord(true);
 		addRecipeFrame.add(instructionsArea);
 
 		JButton saveButton = new JButton(isEditing ? "Save Changes" : "Save Recipe");
@@ -164,6 +243,27 @@ public class GUI {
 					ingredientsList.add(ingredient.trim());
 				}
 
+				// Check if a recipe with the same name already exists
+	            if (isEditing || !FileIO.recipeExists(recipeName)) {
+	            	// Delete the original file if editing
+	                if (isEditing) {
+	                    FileIO.deleteRecipeFile(recipeNameToEdit);
+	                }
+	            	
+	            	// Create a Recipe object
+	                Recipe newRecipe = new Recipe(recipeName, ingredientsList, instructions);
+
+	                // Save the recipe to a .txt file using FileIO class
+	                FileIO.saveRecipeToFile(newRecipe);
+
+	                addRecipeFrame.dispose(); // Close the add/edit recipe window
+	                showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false,
+	                        SuccessMessageType.RECIPE_ADDED);
+	            } else {
+	                showErrorMessage("Error: A recipe with the name '" + recipeName
+	                        + "' already exists. Please choose a different name.");
+	            }
+				/*
 				// Create a Recipe object
 				Recipe newRecipe = new Recipe(recipeName, ingredientsList, instructions);
 
@@ -171,7 +271,9 @@ public class GUI {
 				FileIO.saveRecipeToFile(newRecipe);
 
 				addRecipeFrame.dispose(); // Close the add/edit recipe window
-				showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false);
+				showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false,
+						SuccessMessageType.RECIPE_ADDED);
+				*/
 			}
 		});
 		addRecipeFrame.add(saveButton);
@@ -181,10 +283,11 @@ public class GUI {
 			showEditRecipeFromFile(nameField, ingredientsArea, instructionsArea, recipeNameToEdit);
 		}
 
+		addRecipeFrame.setLocationRelativeTo(null);
 		addRecipeFrame.setVisible(true);
 	}
 
-	//new GUI created for Searching for recipe
+	// new GUI created for Searching for recipe
 	private void showSearchRecipeDialog() {
 		JFrame searchRecipeFrame = new JFrame("Search for a Recipe");
 		searchRecipeFrame.setSize(400, 150);
@@ -208,7 +311,7 @@ public class GUI {
 				String recipeContent = FileIO.searchRecipeFile(recipeName);
 
 				if (recipeContent != null) {
-					showSuccessMessage("Recipe Found:\n" + recipeContent, true);
+					showSuccessMessage("Recipe Found:\n" + recipeContent, true, SuccessMessageType.GENERIC);
 				} else {
 					showErrorMessage("No File Found for Recipe: " + recipeName);
 				}
@@ -218,9 +321,11 @@ public class GUI {
 		});
 		searchRecipeFrame.add(searchButton);
 
+		searchRecipeFrame.setLocationRelativeTo(null);
 		searchRecipeFrame.setVisible(true);
 	}
-	//new GUI window for editing a recipe
+
+	// new GUI window for editing a recipe
 	private void showEditRecipeDialog() {
 		JFrame editRecipeFrame = new JFrame("Edit a Recipe");
 		editRecipeFrame.setSize(500, 400);
@@ -255,11 +360,11 @@ public class GUI {
 		});
 		editRecipeFrame.add(searchButton);
 
+		editRecipeFrame.setLocationRelativeTo(null);
 		editRecipeFrame.setVisible(true);
 	}
 
-	//GUI cretaed for edit recipe content
-	@SuppressWarnings("unused")
+	// GUI cretaed for edit recipe content
 	private void showEditRecipeContentDialog(String content, String recipeName) {
 		JFrame editRecipeContentFrame = new JFrame("Edit Recipe");
 		editRecipeContentFrame.setSize(500, 400);
@@ -286,16 +391,17 @@ public class GUI {
 				FileIO.saveRecipeToFile(updatedRecipe);
 
 				editRecipeContentFrame.dispose(); // Close the edit recipe content window
-				showSuccessMessage("Recipe Edited Successfully", false);
+				showSuccessMessage("Recipe Edited Successfully", false, SuccessMessageType.GENERIC);
 			}
 		});
 		editRecipeContentFrame.add(saveButton);
 
+		editRecipeContentFrame.setLocationRelativeTo(null);
 		editRecipeContentFrame.setVisible(true);
 	}
 
-	//new GUI window for when a recipe is found during a search function
-	public void showSuccessMessage(String message, boolean isRecipeFound) {
+	// new GUI window for when a recipe is found during a search function
+	public void showSuccessMessage(String message, boolean isRecipeFound, SuccessMessageType messageType) {
 		if (isRecipeFound) {
 			JTextArea textArea = new JTextArea(message);
 			textArea.setEditable(false);
@@ -309,14 +415,20 @@ public class GUI {
 		} else {
 			JOptionPane.showMessageDialog(frame, message);
 		}
+
+		// Check the type of success message and relaunch the Recipe menu accordingly
+		if (messageType == SuccessMessageType.RECIPE_ADDED || messageType == SuccessMessageType.RECIPE_DELETED) {
+			viewRecipeMenu();
+		}
 	}
 
-	//creates new window for when you're showing an error message
+	// creates new window for when you're showing an error message
 	public void showErrorMessage(String message) {
 		JOptionPane.showMessageDialog(frame, message);
 	}
 
-	//pulls data from file that exists to make sure the file populates the name, ingredients, and instructions fields
+	// pulls data from file that exists to make sure the file populates the name,
+	// ingredients, and instructions fields
 	private void showEditRecipeFromFile(JTextField nameField, JTextArea ingredientsArea, JTextArea instructionsArea,
 			String recipeName) {
 		String recipeContent = FileIO.searchRecipeFile(recipeName);
@@ -329,7 +441,8 @@ public class GUI {
 		}
 	}
 
-	//dialog box for deleting recipes includes information for finding recipe and deleting it
+	// dialog box for deleting recipes includes information for finding recipe and
+	// deleting it
 	private void showDeleteRecipeDialog() {
 		JFrame deleteRecipeFrame = new JFrame("Delete a Recipe");
 		deleteRecipeFrame.setSize(400, 150);
@@ -358,7 +471,7 @@ public class GUI {
 							JOptionPane.YES_NO_OPTION);
 					if (choice == JOptionPane.YES_OPTION) {
 						if (FileIO.deleteRecipeFile(recipeName)) {
-							showSuccessMessage("Recipe Successfully Deleted", false);
+							showSuccessMessage("Recipe Successfully Deleted", false, SuccessMessageType.RECIPE_DELETED);
 						} else {
 							showErrorMessage("Error: Recipe not deleted.");
 						}
@@ -372,6 +485,39 @@ public class GUI {
 		});
 		deleteRecipeFrame.add(deleteButton);
 
+		deleteRecipeFrame.setLocationRelativeTo(null);
 		deleteRecipeFrame.setVisible(true);
 	}
+
+	// Helper method to update the recipe count label
+	private void updateRecipeCountLabel() {
+		int count = FileIO.getNumberOfRecipes();
+		JLabel recipeCountLabel;
+
+		if (count == 0) {
+			recipeCountLabel = new JLabel("The library is empty.");
+		} else if (count == 1) {
+			recipeCountLabel = new JLabel("There is 1 recipe in the library.");
+		} else {
+			recipeCountLabel = new JLabel("There are " + count + " recipes in the library.");
+		}
+
+		recipeCountLabel.setBounds(20, 25, 330, 25);
+		recipeCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+		// Find and replace the existing label in the JFrame
+		Container container = recipeFrame.getContentPane();
+		for (Component component : container.getComponents()) {
+			if (component instanceof JLabel && ((JLabel) component).getText().contains("recipes in the library")) {
+				container.remove(component);
+				container.add(recipeCountLabel);
+				break;
+			}
+		}
+
+		// Repaint the JFrame to reflect the changes
+		recipeFrame.revalidate();
+		recipeFrame.repaint();
+	}
+
 }

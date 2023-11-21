@@ -263,17 +263,7 @@ public class GUI {
 	                showErrorMessage("Error: A recipe with the name '" + recipeName
 	                        + "' already exists. Please choose a different name.");
 	            }
-				/*
-				// Create a Recipe object
-				Recipe newRecipe = new Recipe(recipeName, ingredientsList, instructions);
-
-				// Save the recipe to a .txt file using FileIO class
-				FileIO.saveRecipeToFile(newRecipe);
-
-				addRecipeFrame.dispose(); // Close the add/edit recipe window
-				showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false,
-						SuccessMessageType.RECIPE_ADDED);
-				*/
+			
 			}
 		});
 		addRecipeFrame.add(saveButton);

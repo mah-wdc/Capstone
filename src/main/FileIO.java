@@ -9,98 +9,106 @@ import gui.GUI;
 import gui.GUI.SuccessMessageType;
 
 public class FileIO {
-	private static final String FILE_DIRECTORY = "recipe_files/";
-	private static GUI gui;
+    // Constant for the directory where recipe files are stored
+    private static final String FILE_DIRECTORY = "recipe_files/";
+    // Reference to the GUI for displaying messages
+    private static GUI gui;
 
-	// creates directory if necessary, and then creates the file to add recipes to,
-	// as necessary
-	public static void saveRecipeToFile(Recipe recipe) {
-		createDirectoryIfNotExists();
+    // Saves a recipe to a file
+    public static void saveRecipeToFile(Recipe recipe) {
+        // Ensure the directory exists
+        createDirectoryIfNotExists();
 
-		String recipeName = recipe.getRecipeName();
-		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+        // Create a file name based on the recipe name
+        String recipeName = recipe.getRecipeName();
+        String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
 
-		// Check if a recipe with the same name already exists
-		if (recipeExists(recipeName)) {
-		    gui.showErrorMessage("Error: A recipe with the name '" + recipeName
-		            + "' already exists. Please choose a different name.");
-		    return;
-		}
+        // Check if a recipe with the same name already exists
+        if (recipeExists(recipeName)) {
+            gui.showErrorMessage("Error: A recipe with the name '" + recipeName
+                    + "' already exists. Please choose a different name.");
+            return;
+        }
 
-		// Create timestamp
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-		String timestamp = dateFormat.format(new Date());
+        // Create timestamp for the recipe
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String timestamp = dateFormat.format(new Date());
 
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-			writer.write("Recipe Name: " + recipe.getRecipeName() + "\n");
-			writer.write("Ingredients: " + String.join(", ", recipe.getIngredients()) + "\n");
-			writer.write("Instructions: " + recipe.getInstructions());
-			writer.write("\n\nTimestamp: " + timestamp);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	// Helper method to check if a recipe with the given name already exists
-	public static boolean recipeExists(String recipeName) {
-	    String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
-	    File file = new File(fileName);
-	    return file.exists();
-	}
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            // Write recipe details to the file
+            writer.write("Recipe Name: " + recipe.getRecipeName() + "\n");
+            writer.write("Ingredients: " + String.join(", ", recipe.getIngredients()) + "\n");
+            writer.write("Instructions: " + recipe.getInstructions());
+            writer.write("\n\nTimestamp: " + timestamp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	// searches for file based on the String for the Recipe name given
-	public static String searchRecipeFile(String recipeName) {
-		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
-		File file = new File(fileName);
+    // Checks if a recipe with the given name already exists
+    public static boolean recipeExists(String recipeName) {
+        String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+        File file = new File(fileName);
+        return file.exists();
+    }
 
-		if (file.exists()) {
-			StringBuilder result = new StringBuilder();
-			try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					result.append(line).append("\n");
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return result.toString();
-		} else {
-			return null;
-		}
-	}
+    // Searches for a file based on the recipe name
+    public static String searchRecipeFile(String recipeName) {
+        String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+        File file = new File(fileName);
 
-	// setter method sets the GUI reference
-	public static void setGUIReference(GUI guiInstance) {
-		gui = guiInstance;
-	}
+        if (file.exists()) {
+            // Read the contents of the file and return as a string
+            StringBuilder result = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    result.append(line).append("\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return result.toString();
+        } else {
+            return null; // Return null if the file does not exist
+        }
+    }
 
-	// deletes the file if it exists
-	public static boolean deleteRecipeFile(String recipeName) {
-		String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
-		File file = new File(fileName);
+    // Sets the GUI reference for displaying messages
+    public static void setGUIReference(GUI guiInstance) {
+        gui = guiInstance;
+    }
 
-		if (file.exists()) {
-			if (file.delete()) {
-				return true;
-			}
-		}
-		return false;
-	}
+    // Deletes the file if it exists
+    public static boolean deleteRecipeFile(String recipeName) {
+        String fileName = FILE_DIRECTORY + recipeName.replaceAll("\\s+", "_") + ".txt";
+        File file = new File(fileName);
 
-	// if no file directory currently exists, creates on
-	private static void createDirectoryIfNotExists() {
-		File directory = new File(FILE_DIRECTORY);
-		if (!directory.exists()) {
-			directory.mkdirs();
-		}
-	}
+        if (file.exists()) {
+            // Attempt to delete the file and return true if successful
+            if (file.delete()) {
+                return true;
+            }
+        }
+        return false; // Return false if the file does not exist or deletion fails
+    }
 
-	public static int getNumberOfRecipes() {
-		File directory = new File(FILE_DIRECTORY);
-		if (directory.exists() && directory.isDirectory()) {
-			return directory.listFiles().length;
-		} else {
-			return 0;
-		}
-	}
+    // Creates the directory if it does not exist
+    private static void createDirectoryIfNotExists() {
+        File directory = new File(FILE_DIRECTORY);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+    }
+
+    // Gets the number of recipes in the directory
+    public static int getNumberOfRecipes() {
+        File directory = new File(FILE_DIRECTORY);
+        if (directory.exists() && directory.isDirectory()) {
+            // Return the number of files in the directory
+            return directory.listFiles().length;
+        } else {
+            return 0; // Return 0 if the directory does not exist or is not a directory
+        }
+    }
 }

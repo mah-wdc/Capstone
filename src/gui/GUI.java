@@ -10,10 +10,12 @@ import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -32,6 +34,94 @@ public class GUI {
 	private final String PIN = "1234";
 	private JLabel dateLabel;
 	private JLabel timeLabel;
+
+	/*********************************************************************/
+	/*********************************************************************/
+	/*********************************************************************/
+	private String selectedUser;
+
+	// Method to show user selection window
+	public void showUserSelection() {
+		JFrame userSelectionFrame = new JFrame("Select User");
+		userSelectionFrame.setSize(400, 300);
+		userSelectionFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		userSelectionFrame.setLayout(null);
+
+		// Create a clickable list of users
+		HashMap<String, String> users = FileIO.getUsers();
+		String[] userList = users.keySet().toArray(new String[0]);
+		JList<String> userJList = new JList<>(userList);
+		JScrollPane scrollPane = new JScrollPane(userJList);
+		scrollPane.setBounds(20, 20, 350, 200);
+		userSelectionFrame.add(scrollPane);
+
+		JButton selectButton = new JButton("Select User");
+		selectButton.setBounds(150, 240, 100, 25);
+		selectButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				selectedUser = userJList.getSelectedValue();
+				if (selectedUser != null) {
+					showPasswordWindow();
+					userSelectionFrame.dispose();
+				} else {
+					showErrorMessage("Please select a user.");
+				}
+			}
+		});
+		// Set the default button for the Enter key
+		userSelectionFrame.getRootPane().setDefaultButton(selectButton);
+		userSelectionFrame.add(selectButton);
+
+		userSelectionFrame.setLocationRelativeTo(null);
+		userSelectionFrame.setVisible(true);
+	}
+
+	// Method to show the password window
+	private void showPasswordWindow() {
+		JFrame passwordFrame = new JFrame("Enter Password");
+		passwordFrame.setSize(350, 150);
+		passwordFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		passwordFrame.setLayout(null);
+
+		JLabel passwordLabel = new JLabel("Enter Password for " + selectedUser + ":");
+		passwordLabel.setBounds(50, 20, 300, 25);
+		passwordFrame.add(passwordLabel);
+
+		JPasswordField passwordField = new JPasswordField();
+		passwordField.setBounds(50, 50, 250, 25);
+		passwordFrame.add(passwordField);
+
+		JButton submitButton = new JButton("Submit");
+		submitButton.setBounds(100, 90, 100, 25);
+		submitButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String enteredPassword = new String(passwordField.getPassword());
+				if (FileIO.authenticateUser(selectedUser, enteredPassword)) {
+					showSuccessMessage("Password entered successfully.", false, SuccessMessageType.GENERIC);
+					viewRecipeMenu();
+					passwordFrame.dispose();
+				} else {
+					showErrorMessage("Error: Incorrect password. Please try again.");
+					// Allow the user to enter the password again
+	                passwordField.setText(""); // Clear the password field for another attempt
+	                passwordField.requestFocus(); // Set focus back to the password field
+	           
+				}
+			}
+		});
+		// Set the default button for the Enter key
+	    passwordFrame.getRootPane().setDefaultButton(submitButton);
+		passwordFrame.add(submitButton);
+
+		passwordFrame.setLocationRelativeTo(null);
+		passwordFrame.setVisible(true);
+	}
+
+	/*********************************************************************/
+	/*********************************************************************/
+	/*********************************************************************/
 
 	// Constructor for the main GUI, creates frames for the PIN Verification
 	public GUI() {
@@ -84,6 +174,8 @@ public class GUI {
 	private void viewRecipeMenu() {
 		frame.dispose(); // Close the PIN verification window
 
+		disposeCurrentFrame(); // Dispose of the current frame
+
 		recipeFrame = new JFrame("Recipe Library Options");
 		recipeFrame.setSize(400, 250);
 		recipeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -119,7 +211,7 @@ public class GUI {
 		addRecipeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				showAddRecipeDialog(false, null);
+				showAddRecipeDialog(false, null, selectedUser);
 			}
 		});
 		recipeFrame.add(addRecipeButton);
@@ -193,7 +285,9 @@ public class GUI {
 	}
 
 	// Dialog box for creating or updating a recipe
-	private void showAddRecipeDialog(boolean isEditing, String recipeNameToEdit) {
+	private void showAddRecipeDialog(boolean isEditing, String recipeNameToEdit, String selectedUser) {
+		disposeCurrentFrame(); // Dispose of the current frame
+
 		JFrame addRecipeFrame = new JFrame(isEditing ? "Edit Recipe" : "Add a Recipe");
 		addRecipeFrame.setSize(500, 400);
 		addRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -254,7 +348,7 @@ public class GUI {
 					Recipe newRecipe = new Recipe(recipeName, ingredientsList, instructions);
 
 					// Save the recipe to a .txt file using FileIO class
-					FileIO.saveRecipeToFile(newRecipe);
+					FileIO.saveRecipeToFile(newRecipe, selectedUser);
 
 					addRecipeFrame.dispose(); // Close the add/edit recipe window
 					showSuccessMessage(isEditing ? "Recipe Edited Successfully" : "Recipe Added", false,
@@ -279,6 +373,8 @@ public class GUI {
 
 	// New GUI created for Searching for recipe
 	private void showSearchRecipeDialog() {
+		disposeCurrentFrame(); // Dispose of the current frame
+
 		JFrame searchRecipeFrame = new JFrame("Search for a Recipe");
 		searchRecipeFrame.setSize(400, 150);
 		searchRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -307,6 +403,7 @@ public class GUI {
 				}
 
 				searchRecipeFrame.dispose();
+				viewRecipeMenu();
 			}
 		});
 		searchRecipeFrame.add(searchButton);
@@ -317,6 +414,8 @@ public class GUI {
 
 	// New GUI window for editing a recipe
 	private void showEditRecipeDialog() {
+		disposeCurrentFrame(); // Dispose of the current frame
+
 		JFrame editRecipeFrame = new JFrame("Edit a Recipe");
 		editRecipeFrame.setSize(500, 400);
 		editRecipeFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -340,12 +439,13 @@ public class GUI {
 
 				if (recipeContent != null) {
 					// Show the add recipe dialog with editing enabled
-					showAddRecipeDialog(true, recipeName);
+					showAddRecipeDialog(true, recipeName, selectedUser);
 				} else {
 					showErrorMessage("No File Found for Recipe: " + recipeName);
 				}
 
 				editRecipeFrame.dispose();
+				viewRecipeMenu();
 			}
 		});
 		editRecipeFrame.add(searchButton);
@@ -354,8 +454,10 @@ public class GUI {
 		editRecipeFrame.setVisible(true);
 	}
 
-	// GUI cretaed for edit recipe content
+	// GUI created for edit recipe content
 	private void showEditRecipeContentDialog(String content, String recipeName) {
+		disposeCurrentFrame(); // Dispose of the current frame
+
 		JFrame editRecipeContentFrame = new JFrame("Edit Recipe");
 		editRecipeContentFrame.setSize(500, 400);
 		editRecipeContentFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -378,7 +480,7 @@ public class GUI {
 
 				// Save the updated content as a new file
 				Recipe updatedRecipe = Recipe.parseRecipeFromString(updatedContent);
-				FileIO.saveRecipeToFile(updatedRecipe);
+				FileIO.saveRecipeToFile(updatedRecipe, selectedUser);
 
 				editRecipeContentFrame.dispose(); // Close the edit recipe content window
 				showSuccessMessage("Recipe Edited Successfully", false, SuccessMessageType.GENERIC);
@@ -407,9 +509,11 @@ public class GUI {
 		}
 
 		// Check the type of success message and relaunch the Recipe menu accordingly
-		if (messageType == SuccessMessageType.RECIPE_ADDED || messageType == SuccessMessageType.RECIPE_DELETED) {
-			viewRecipeMenu();
-		}
+		/*
+		 * if (messageType == SuccessMessageType.RECIPE_ADDED || messageType ==
+		 * SuccessMessageType.RECIPE_DELETED) { viewRecipeMenu(); }
+		 */
+		viewRecipeMenu();
 	}
 
 	// Creates new window for when you're showing an error message
@@ -508,6 +612,16 @@ public class GUI {
 		// Repaint the JFrame to reflect the changes
 		recipeFrame.revalidate();
 		recipeFrame.repaint();
+	}
+
+	// New method for Phase 3 to ensure windows don't stack
+	private void disposeCurrentFrame() {
+		if (frame != null) {
+			frame.dispose();
+		}
+		if (recipeFrame != null) {
+			recipeFrame.dispose();
+		}
 	}
 
 }

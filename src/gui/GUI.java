@@ -33,16 +33,11 @@ public class GUI {
 	private JLabel timeLabel;
 	private String selectedUser;
 
-	// Constructor for the main GUI, creates frames for the PIN Verification
+	// Constructor for the main GUI
 	public GUI() {
 		FileIO.setGUIReference(this);
 
 		frame = new JFrame();
-		frame.setSize(300, 150);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(null);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
 
 	}
 

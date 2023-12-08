@@ -293,6 +293,11 @@ public class GUI {
 				String recipeName = nameField.getText();
 				String ingredientsText = ingredientsArea.getText();
 				String instructions = instructionsArea.getText();
+				
+				if (recipeName.trim().isEmpty()) {
+	                showErrorMessage("Error: Recipe name cannot be blank or contain only spaces.");
+	                return;
+	            }
 
 				// Split ingredients by comma and create an ArrayList
 				String[] ingredientsArray = ingredientsText.split(",");

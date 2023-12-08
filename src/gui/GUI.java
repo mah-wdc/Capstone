@@ -352,7 +352,7 @@ public class GUI {
 		searchRecipeFrame.add(nameLabel);
 
 		JTextField nameField = new JTextField();
-		nameField.setBounds(180, 20, 150, 25);
+		nameField.setBounds(140, 20, 250, 25);
 		searchRecipeFrame.add(nameField);
 
 		JButton searchButton = new JButton("Search");
@@ -396,7 +396,7 @@ public class GUI {
 		editRecipeFrame.add(nameLabel);
 
 		JTextField nameField = new JTextField();
-		nameField.setBounds(180, 20, 150, 25);
+		nameField.setBounds(140, 20, 250, 25);
 		editRecipeFrame.add(nameField);
 
 		JButton searchButton = new JButton("Search");
@@ -498,7 +498,7 @@ public class GUI {
 		deleteRecipeFrame.add(nameLabel);
 
 		JTextField nameField = new JTextField();
-		nameField.setBounds(180, 20, 150, 25);
+		nameField.setBounds(140, 20, 250, 25);
 		deleteRecipeFrame.add(nameField);
 
 		JButton deleteButton = new JButton("Delete");

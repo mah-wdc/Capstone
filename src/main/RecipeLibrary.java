@@ -1,14 +1,16 @@
-
 package main;
 
-import javax.swing.SwingUtilities;
+/*
+*   File: RecipeLibrary.java
+*   Authors: Matthew Homan, Bethany Van Waes, and Michael Rach
+*   Date: 12/12/2023
+*   Purpose: This file serves as the entry point for the recipe library application.
+*   Contains the main method for the program.
+*/
 
+import javax.swing.SwingUtilities;
 import gui.GUI;
 
-/**
- * The RecipeLibrary class serves as the entry point for the recipe library
- * application.
- */
 public class RecipeLibrary {
 
 	/**

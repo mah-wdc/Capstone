@@ -1,5 +1,12 @@
 package main;
 
+/*
+*   File: FileIO.java
+*   Authors: Matthew Homan, Bethany Van Waes, and Michael Rach
+*   Date: 12/12/2023
+*   Purpose: This file creates, edits, deletes, and searches recipe files. 
+*/
+
 import java.io.*;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
@@ -43,6 +50,7 @@ public class FileIO {
 	/******************************************************************************************************/
 	/******************************************************************************************************/
 
+	//gets user
 	public static HashMap<String, String> getUsers() {
 		return users;
 	}

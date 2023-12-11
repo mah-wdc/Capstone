@@ -1,5 +1,12 @@
 package main;
 
+/*
+*   File: Recipe.java
+*   Authors: Matthew Homan, Bethany Van Waes, and Michael Rach
+*   Date: 12/12/2023
+*   Purpose: This file creates Recipe object
+*/
+
 import java.util.ArrayList;
 
 public class Recipe {
